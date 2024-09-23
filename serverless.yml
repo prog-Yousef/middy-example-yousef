@@ -1,0 +1,42 @@
+# "org" ensures this Service is used with the correct Serverless Framework Access Key.
+org: yousefs
+# "service" is the name of this project. This will also be added to your AWS resource names.
+service: middy-example-yousef
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  region: eu-north-1
+  iam:
+    role: arn:aws:iam::396913740002:role/lecture-role
+
+build:
+  esbuild:
+    minify: true
+
+package:
+  individually: true
+
+  minif
+
+functions:
+  Account:
+    handler: functions/Account/index.handler
+    events:
+      - httpApi:
+          path: '/account'
+          method: GET
+
+resources:
+  Resources:
+    jwtAccounts:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: accounts
+        AttributeDefinitions:
+          - AttributeName: username
+            AttributeType: S
+        KeySchema:
+          - AttributeName: username
+            KeyType: HASH
+        BillingMode: PAY_PER_REQUEST
