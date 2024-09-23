@@ -1,7 +1,7 @@
 const { sendResponse, sendError } = require("../../responses/index");
 const { db } = require("../../services/db");
 const middy = require("@middy/core");
-const {validateToken} = require("../../middleware/auth'");
+const {validateToken} = require("../../middleware/auth");
 
 
 async function getAccount(username) {
@@ -20,23 +20,33 @@ async function getAccount(username) {
   }
 }
 
-exports.handler = async (event) => {
-  try {
-    const account = await getAccount();
+const handler = middy()
+.handler( async (event) => {
+    try {
 
-    if (!account) {
-      return sendError(404, "Account not found");
+        if (!event?.id || (event?.error && event?.error === '401')) return sendError(401, { success: false, message: 'Invalid token' })
+
+
+      const account = await getAccount(event.username);
+  
+      if (!account) {
+        return sendError(404, "Account not found");
+      }
+  
+      return sendResponse({
+        success: true,
+        account: account
+      });
+    } catch (error) {
+      return sendError(400, {
+        success: false,
+        message: 'Could not get account',
+        error: error.message || error
+      });
     }
+  })
 
-    return sendResponse({
-      success: true,
-      account: account
-    });
-  } catch (error) {
-    return sendError(400, {
-      success: false,
-      message: 'Could not get account',
-      error: error.message || error
-    });
-  }
-};
+.use(validateToken);
+
+
+module.exports = { handler };
